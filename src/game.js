@@ -285,6 +285,7 @@ class Game extends Phaser.Scene {
                 newChar.body.setGravityY(700);
                 newChar.playerHealth = new HealthBar(this, 706, 107);
                 this.playerData[addedPlayer.id] = newChar;
+                this.opponentID = addedPlayer.id;
             }
             // var par = document.getElementById("box");
             // var bt = document.createElement("button");
@@ -329,6 +330,8 @@ class Game extends Phaser.Scene {
                     this.setActive(false);
                     this.setVisible(false);
                 }
+
+
             },
         });
     
@@ -343,9 +346,18 @@ class Game extends Phaser.Scene {
             a.setActive(false);
             a.setVisible(false);
         }
+
+        function f2(a, b) {
+            a.setActive(false);
+            a.setVisible(false);
+
+        }
+
         this.physics.add.overlap(this.bullets, this.platforms, f, null, this);
 
         this.physics.add.collider(this.bullets, this.platforms);
+
+        this.physics.add.overlap(this.bullets, this.playerData[this.opponentID], f2, null, this);
     }
 
     update (){
