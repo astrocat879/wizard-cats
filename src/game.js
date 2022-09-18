@@ -73,7 +73,6 @@ class Game extends Phaser.Scene {
         super({ key: 'Game' });
         this.firebaseApp = initializeApp(FBconfig);
         this.db = getDatabase(this.firebaseApp);
-        this.playerData = {};
         this.prevShoot = -100;
     }
 
@@ -261,31 +260,30 @@ class Game extends Phaser.Scene {
             this.players = snapshot.val() || {};
             Object.keys(this.players).forEach(characterKey => {
                 if (characterKey != this.playerNumber){
+                    console.log("VALUE UPDATED");
                     const updatedPlayer = this.players[characterKey];
-                    const curPlayer = this.playerData[characterKey];
-                    curPlayer.x = updatedPlayer.x;
-                    curPlayer.y = updatedPlayer.y;
-                    curPlayer.body.velocity.x = 0;
-                    curPlayer.body.velocity.y = 0;
-                    curPlayer.anims.play(updatedPlayer.animation, true);
+                    console.log(updatedPlayer.x);
+                    console.log(this.newChar.x);
+                    this.newChar.x = updatedPlayer.x;
+                    this.newChar.y = updatedPlayer.y;
+                    this.newChar.body.velocity.x = 0;
+                    this.newChar.body.velocity.y = 0;
+                    this.newChar.anims.play(updatedPlayer.animation, true);
                 }
             })
         })
 
         onChildAdded(allPlayersRef, (snapshot) => { // draw all the other players
             const addedPlayer = snapshot.val();
-            if(addedPlayer.playerCount==1) this.add.image(70,70,addedPlayer.character);
-            else this.add.image(730,70,addedPlayer.character);
             if (addedPlayer.id != this.playerNumber){
+                console.log("CHILD ADDED");
                 console.log(addedPlayer.id);
-                var newChar = this.physics.add.sprite(addedPlayer.x, addedPlayer.y, addedPlayer.character);
-                this.physics.add.collider(newChar, this.platforms);
-                this.physics.add.collider(newChar, this.drawnPlatform);
-                newChar.setBounce(0.2);
-                newChar.body.setGravityY(700);
-                newChar.playerHealth = new HealthBar(this, 706, 107);
-                this.playerData[addedPlayer.id] = newChar;
-                this.opponentID = addedPlayer.id;
+                this.newChar = this.physics.add.sprite(addedPlayer.x, addedPlayer.y, addedPlayer.character);
+                this.physics.add.collider(this.newChar, this.platforms);
+                this.physics.add.collider(this.newChar, this.drawnPlatform);
+                this.newChar.setBounce(0.2);
+                this.newChar.body.setGravityY(700);
+                this.newChar.playerHealth = new HealthBar(this, 706, 107);
             }
             // var par = document.getElementById("box");
             // var bt = document.createElement("button");
@@ -357,7 +355,9 @@ class Game extends Phaser.Scene {
 
         this.physics.add.collider(this.bullets, this.platforms);
 
-        this.physics.add.overlap(this.bullets, this.playerData[this.opponentID], f2, null, this);
+        this.physics.add.overlap(this.bullets, this.newChar, f2, null, this);
+
+        this.physics.add.collider(this.bullets, this.newChar);
     }
 
     update (){
@@ -414,7 +414,7 @@ class Game extends Phaser.Scene {
             var bullet = this.bullets.get();
             if (bullet)
             {
-                if(this.prevShoot == -100 || (Date.now() - this.prevShoot)/1000 >= 1) {
+                if(this.prevShoot == -100 || (Date.now() - this.prevShoot)/400 >= 1) {
                     bullet.fire(this.player.x, this.player.y, (pointer.worldY - this.player.y)/Math.abs(pointer.worldX - this.player.x), (pointer.worldX - this.player.x)/Math.abs(pointer.worldX - this.player.x), this.platforms, this);
                     this.prevShoot = Date.now();
                 }
